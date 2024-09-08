@@ -91,3 +91,4 @@ jobs:
         with:
           name: dist
           path: target/release
+          
