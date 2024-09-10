@@ -8,6 +8,11 @@ name: rust
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,6 +25,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
         with:
+          ref: "${{ inputs.tag }}"
           submodules: recursive
       - name: Setup Rust (cache & toolchain)
         uses: ./.github/actions/setup-rust
