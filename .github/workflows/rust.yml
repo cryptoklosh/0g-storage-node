@@ -7,77 +7,25 @@
 name: rust
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # check:
-  #   name: check
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout sources
-  #       uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-  #     - name: Setup Rust (cache & toolchain)
-  #       uses: ./.github/actions/setup-rust
-  #     - name: Run cargo check
-  #       uses: actions-rs/cargo@v1
-  #       with:
-  #         command: check
-  #         args: --release
-
-  # test:
-  #   name: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout sources
-  #       uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-  #     - name: Setup Rust (cache & toolchain)
-  #       uses: ./.github/actions/setup-rust
-  #     - name: Run cargo test
-  #       uses: actions-rs/cargo@v1
-  #       with:
-  #         command: test
-  #         args: --release
-
-  # lints:
-  #   name: lints
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout sources
-  #       uses: actions/checkout@v3
-  #       with:
-  #         submodules: recursive
-  #     - name: Setup Rust (cache & toolchain)
-  #       uses: ./.github/actions/setup-rust
-  #     - name: Run cargo fmt
-  #       uses: actions-rs/cargo@v1
-  #       with:
-  #         command: fmt
-  #         args: --all -- --check
-  #     - name: Run cargo clippy
-  #       uses: actions-rs/cargo@v1
-  #       with:
-  #         command: clippy
-  #         # blocks_in_conditions is triggered for tracing::instrument.
-  #         # This can be removed after the fix is released.
-  #         args: -- -D warnings
-
   build:
     name: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          ref: "${{ inputs.tag }}"
           submodules: recursive
       - name: Setup Rust (cache & toolchain)
         uses: ./.github/actions/setup-rust
@@ -91,4 +39,3 @@ jobs:
         with:
           name: dist
           path: target/release
-          
