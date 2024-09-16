@@ -79,7 +79,7 @@ impl<'a> Miner<'a> {
         inc_counter(&LOADING_COUNT);
         let MineLoadChunk {
             loaded_chunk,
-            avalibilities,
+            availabilities,
         } = self
             .loader
             .load_sealed_data(recall_position / SECTORS_PER_LOAD as u64)
@@ -92,8 +92,8 @@ impl<'a> Miner<'a> {
             .into_iter()
             .enumerate()
             .zip(scratch_pad.iter().cycle())
-            .zip(avalibilities.into_iter())
-            .filter_map(|(data, avaliable)| avaliable.then_some(data))
+            .zip(availabilities.into_iter())
+            .filter_map(|(data, availiable)| availiable.then_some(data))
         {
             inc_counter(&PAD_MIX_COUNT);
             // Rust can optimize this loop well.
@@ -114,7 +114,7 @@ impl<'a> Miner<'a> {
                     difficulty_scale_x64.as_u128() as f64 / u64::MAX as f64
                 );
                 inc_counter(&HIT_COUNT);
-                // Undo mix data when find a valid solition
+                // Undo mix data when find a valid solution
                 for (x, y) in sealed_data.iter_mut().zip(scratch_pad.iter()) {
                     *x ^= y;
                 }
@@ -171,7 +171,7 @@ impl<'a> Miner<'a> {
     ) -> U256 {
         let mut hasher = Blake2b512::new();
         hasher.update([0u8; 24]);
-        hasher.update(seal_index.to_be_bytes());
+        hasher.update((seal_index as u64).to_be_bytes());
 
         hasher.update(pad_seed);
         hasher.update([0u8; 32]);

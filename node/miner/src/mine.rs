@@ -98,7 +98,7 @@ impl MineRangeConfig {
         let self_start_position = self.start_position?;
         let self_end_position = self.end_position?;
 
-        if self.start_position >= self.end_position {
+        if self_start_position >= self_end_position {
             return Some(false);
         }
         Some(
@@ -210,7 +210,7 @@ impl PoraService {
                     let timer = time::Instant::now();
 
                     if let Some(answer) = miner.batch_iteration(nonce, self.iter_batch).await {
-                        debug!("Hit Pora answer {:?}", answer);
+                        info!("Hit Pora answer {:?}", answer);
                         if self.mine_answer_sender.send(answer).is_err() {
                             warn!("Mine submitter channel closed");
                         }

@@ -252,7 +252,7 @@ impl LogStoreWrite for LogManager {
                 debug!("recovery with tx_seq={}", tx.seq);
             } else {
                 // This is not supposed to happen since we have checked the tx seq in log entry sync.
-                error!("tx unmatch, expected={} get={:?}", expected_seq, tx);
+                error!("tx mismatch, expected={} get={:?}", expected_seq, tx);
                 bail!("unexpected tx!");
             }
         }
@@ -989,16 +989,16 @@ impl LogManager {
     }
 
     // FIXME(zz): Implement padding.
-    pub fn padding(len: usize) -> Vec<Vec<u8>> {
+    pub fn padding(len: usize) -> Box<dyn Iterator<Item = Vec<u8>>> {
         let remainder = len % PAD_MAX_SIZE;
         let n = len / PAD_MAX_SIZE;
-        let mut pad_data = vec![Self::padding_raw(PAD_MAX_SIZE); n];
+        let iter = (0..n).map(|_| Self::padding_raw(PAD_MAX_SIZE));
         if remainder == 0 {
-            pad_data
+            Box::new(iter)
         } else {
             // insert the remainder to the front, so the rest are processed with alignment.
-            pad_data.insert(0, Self::padding_raw(remainder));
-            pad_data
+            let new_iter = vec![Self::padding_raw(remainder)].into_iter().chain(iter);
+            Box::new(new_iter)
         }
     }
 
@@ -1173,7 +1173,7 @@ pub fn sub_merkle_tree(leaf_data: &[u8]) -> Result<FileMerkleTree> {
 
 pub fn data_to_merkle_leaves(leaf_data: &[u8]) -> Result<Vec<H256>> {
     if leaf_data.len() % ENTRY_SIZE != 0 {
-        bail!("merkle_tree: unmatch data size");
+        bail!("merkle_tree: mismatched data size");
     }
     // If the data size is small, using `rayon` would introduce more overhead.
     let r = if leaf_data.len() >= ENTRY_SIZE * 8 {
@@ -1211,7 +1211,7 @@ fn entry_proof(top_proof: &FlowProof, sub_proof: &FlowProof) -> Result<FlowProof
     assert!(lemma.pop().is_some());
     lemma.extend_from_slice(&top_proof.lemma()[1..]);
     path.extend_from_slice(top_proof.path());
-    Ok(FlowProof::new(lemma, path))
+    FlowProof::new(lemma, path)
 }
 
 pub fn split_nodes(data_size: usize) -> Vec<usize> {
